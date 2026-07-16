@@ -1,4 +1,4 @@
-// Configuración de Firebase (Compat)
+// Configuración de Firebase (Compat) - SOLO PARA AUTHENTICATION
 const firebaseConfig = {
   apiKey: "AIzaSyCtZnrcLj9wYFQnVKvC8-owb7JAaPXpUS8",
   authDomain: "varios-85d7c.firebaseapp.com",
@@ -12,11 +12,31 @@ const firebaseConfig = {
 // Inicializar Firebase Compat
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore();
 
-// Variables globales para compartir estado
+// URL del backend (Definida en index.html)
+// const SCRIPT_URL_DB se elimina, se usará window.APPS_SCRIPT_URL
+const SCRIPT_URL_DB = window.APPS_SCRIPT_URL;
+
+// Variables globales (Compatibles con app.js)
 window.currentUser = null;
-window.userRole = null;
+window.userRole = null; 
+window.activeStudent = null; // Sub-perfil seleccionado con PIN
+
+// Función global segura para hacer peticiones al backend
+window.fetchSecure = async function(payload) {
+    if (!auth.currentUser) {
+        throw new Error("No hay usuario autenticado en Firebase.");
+    }
+    const token = await auth.currentUser.getIdToken();
+    payload.token = token;
+    payload.firebaseApiKey = firebaseConfig.apiKey; // Necesario para que el backend verifique
+    
+    return fetch(window.APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+    });
+};
 
 // =========================================
 // FUNCIONES DE AUTENTICACIÓN
@@ -26,7 +46,13 @@ window.loginUser = async function(email, password) {
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
-        await fetchUserRole(user.email); // Usamos el email como ID del documento
+        const roleRes = await fetchUserRole(user.email); 
+        
+        if (!roleRes.success) {
+            await auth.signOut();
+            return { success: false, error: roleRes.error };
+        }
+        
         return { success: true, user: user, role: window.userRole };
     } catch (error) {
         console.error("Error en login:", error);
@@ -39,6 +65,7 @@ window.logoutUser = async function() {
         await auth.signOut();
         window.currentUser = null;
         window.userRole = null;
+        window.activeStudent = null;
         return true;
     } catch (error) {
         console.error("Error al salir:", error);
@@ -47,114 +74,161 @@ window.logoutUser = async function() {
 };
 
 // =========================================
-// FUNCIONES DE BASE DE DATOS (FIRESTORE)
+// FUNCIONES DE BASE DE DATOS
 // =========================================
 
 async function fetchUserRole(email) {
     try {
-        const userDocRef = db.collection("AI_Tutor_users").doc(email);
-        const userSnap = await userDocRef.get();
-        if (userSnap.exists) {
-            window.userRole = userSnap.data().role.trim().toLowerCase(); // Asegurarnos de limpiar espacios
-            window.currentUser = { email: email, ...userSnap.data() };
-        } else {
-            alert(`ATENCIÓN MAESTRO: Firebase Autenticó tu correo, pero no encontró un documento en la colección 'AI_Tutor_users' cuyo ID sea exactamente tu correo (${email}). Por defecto te enviará a la vista de alumno.`);
-            window.userRole = 'student';
-            window.currentUser = { email: email, role: 'student', name: 'Aventurero' };
+        // En el primer login, currentUser ya está asignado internamente por Firebase,
+        // así que podemos usar fetchSecure.
+        const response = await window.fetchSecure({ action: "GET_USER_ROLE", email: email });
+        const data = await response.json();
+        
+        if (data.success && data.role) {
+            const role = data.role.trim().toLowerCase();
+            if (role === 'teacher' || role === 'student') {
+                window.userRole = role;
+                window.currentUser = { email: email };
+                return { success: true };
+            }
         }
+        console.warn(`Usuario sin credenciales válidas en el sistema: ${email}`);
+        window.userRole = null;
+        return { success: false, error: data.error || "Rol no asignado en Sheets." };
     } catch (error) {
-        alert(`ATENCIÓN MAESTRO: La base de datos denegó el acceso (Error: ${error.message}). Revisa las Reglas de Seguridad de Firestore en tu consola de Firebase.`);
-        console.error("Error obteniendo rol:", error);
-        window.userRole = 'student';
+        console.error("Error obteniendo rol del sistema:", error);
+        window.userRole = null;
+        return { success: false, error: error.message };
     }
 }
 
-window.saveLevelProgress = async function(levelId, score, isCorrect = true) {
-    if (!window.currentUser || window.userRole !== 'student') return;
+// =========================================
+// FUNCIONES DE PROGRESO
+// =========================================
 
+window.saveLevelProgress = async function(levelId, score, isCorrect = true) {
+    if (!window.currentUser || window.userRole !== 'student' || !window.activeStudent) return;
+    
     try {
-        await db.collection("progress").add({
-            studentId: window.currentUser.uid,
-            studentName: window.currentUser.name || window.currentUser.email,
+        await window.fetchSecure({
+            action: "SAVE_PROGRESS",
+            studentUsername: window.activeStudent.username,
             levelId: levelId,
             score: score,
-            isCorrect: isCorrect,
-            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+            isCorrect: isCorrect
         });
-        console.log("Progreso guardado en Firebase.");
+        console.log("Progreso guardado para " + window.activeStudent.username);
     } catch (error) {
         console.error("Error guardando progreso:", error);
     }
 };
 
-window.saveChatActivity = async function(message, response) {
-    if (!window.currentUser || window.userRole !== 'student') return;
+window.getUserProgress = async function() {
+    if (!window.currentUser || window.userRole !== 'student' || !window.activeStudent) return [];
     
     try {
-        await db.collection("student_activities").add({
-            studentId: window.currentUser.uid,
-            studentName: window.currentUser.name || window.currentUser.email,
-            type: "chat",
-            message: message,
-            botResponse: response,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        const response = await window.fetchSecure({
+            action: "GET_USER_PROGRESS",
+            studentUsername: window.activeStudent.username
+        });
+        const data = await response.json();
+        if (data.success) {
+            return data.completedTopics || [];
+        }
+        return [];
+    } catch (error) {
+        console.error("Error leyendo progreso:", error);
+        return [];
+    }
+};
+
+window.getAllStudentsAnalytics = async function() {
+    if (!window.currentUser || window.userRole !== 'teacher') return [];
+    
+    try {
+        const response = await window.fetchSecure({
+            action: "GET_ALL_ANALYTICS",
+            teacherEmail: window.currentUser.email
+        });
+        const data = await response.json();
+        if (data.success) {
+            // Re-mapear fechas para que sean objetos Date
+            let analytics = data.analytics || [];
+            analytics.forEach(student => {
+                if(student.progress) {
+                    student.progress.forEach(p => {
+                        if(p.date) p.date = new Date(p.date);
+                    });
+                }
+            });
+            return analytics;
+        }
+        return [];
+    } catch (error) {
+        console.error("Error obteniendo analíticas:", error);
+        return [];
+    }
+};
+
+window.saveChatActivity = async function(message, responseMsg) {
+    if (!window.currentUser || window.userRole !== 'student' || !window.activeStudent) return;
+    
+    try {
+        await window.fetchSecure({
+            action: "SAVE_CHAT",
+            chatData: {
+                studentUsername: window.activeStudent.username,
+                message: message,
+                response: responseMsg
+            }
         });
     } catch (error) {
         console.error("Error guardando actividad de chat:", error);
     }
 };
 
-window.saveSettings = async function(scriptUrl) {
-    if (!window.currentUser || window.userRole !== 'teacher') return false;
-    try {
-        await db.collection("settings").doc("global").set({
-            gasProxyUrl: scriptUrl,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        return true;
-    } catch (error) {
-        console.error("Error guardando ajustes:", error);
-        return false;
-    }
-};
+// =========================================
+// CRUD DE PERFILES DE ALUMNO (SUB-USERS)
+// =========================================
 
-window.loadSettings = async function() {
+window.createStudentProfile = async function(profileData) {
+    if (!window.currentUser || window.userRole !== 'teacher') return {success: false, error: "No autorizado"};
+    
     try {
-        const snap = await db.collection("settings").doc("global").get();
-        if (snap.exists) {
-            return snap.data();
-        }
-        return null;
-    } catch (error) {
-        console.error("Error cargando ajustes:", error);
-        return null;
-    }
-};
-
-window.saveLesson = async function(lessonId, lessonData) {
-    if (!window.currentUser || window.userRole !== 'teacher') return false;
-    try {
-        await db.collection("lessons").doc(lessonId).set({
-            ...lessonData,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        return true;
-    } catch (error) {
-        console.error("Error guardando lección:", error);
-        return false;
-    }
-};
-
-window.fetchLessons = async function() {
-    try {
-        const snap = await db.collection("lessons").orderBy("order").get();
-        const lessons = [];
-        snap.forEach(doc => {
-            lessons.push({ id: doc.id, ...doc.data() });
+        profileData.teacherEmail = window.currentUser.email;
+        const response = await window.fetchSecure({
+            action: "CREATE_STUDENT_PROFILE",
+            profileData: profileData
         });
-        return lessons;
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error("Error cargando lecciones:", error);
+        console.error("Error creando perfil:", error);
+        return {success: false, error: error.message};
+    }
+};
+
+window.getStudentProfiles = async function(forTeacher = false) {
+    if (!window.currentUser) return [];
+    
+    try {
+        const response = await window.fetchSecure({
+            action: "GET_STUDENT_PROFILES",
+            email: window.currentUser.email,
+            forTeacher: forTeacher
+        });
+        const data = await response.json();
+        if (data.success) {
+            return data.profiles || [];
+        }
+        return [];
+    } catch (error) {
+        console.error("Error listando perfiles:", error);
         return [];
     }
+};
+
+window.deleteStudentProfile = async function(username) {
+    console.log("Delete logic para sheets pendiente...");
+    return {success: true};
 };

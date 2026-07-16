@@ -1,6 +1,5 @@
 // Lógica para el tutor flotante y la interacción con Gemini API a través del Proxy de GAS
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_-uhpG0Xkm4uQAAnyMWsuu6SxnsdG7wESLVKHiXcA4cUIjoTpd2SYwRr7Madk__zWMA/exec";
 
 class AITutor {
     constructor() {
@@ -27,7 +26,11 @@ class AITutor {
         }
         if(this.fabButton) {
             this.fabButton.addEventListener('click', () => {
-                this.openChat();
+                if (this.chatModal && this.chatModal.style.display === 'flex') {
+                    this.chatModal.style.display = 'none';
+                } else {
+                    this.openChat();
+                }
             });
             
             // Llamar la atención del niño periódicamente
@@ -119,7 +122,7 @@ class AITutor {
         this.proxyUrl = localStorage.getItem('gas_proxy_url');
         this.chatModal.style.display = 'flex';
         if (this.chatHistory.children.length === 0) {
-            this.addMessage("¡Hola! Soy tu Tutor Mágico. Puedes preguntarme lo que quieras sobre la historia de Guatemala.", 'bot');
+            this.addMessage("¡Hola! Soy tu Tutor Mágico. Haz clic en una aventura del mapa para empezar, o hazme una pregunta de tus lecciones.", 'bot');
         }
     }
 
@@ -154,17 +157,40 @@ class AITutor {
 
         try {
             const token = await firebase.auth().currentUser.getIdToken();
-            // Nota: Usamos text/plain para evitar errores de preflight CORS en Google Apps Script
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({ 
-                    action: "CHAT",
-                    message: text,
-                    token: token
-                }),
+            
+            // Si es estudiante
+            let progressSummary = "";
+            let studentName = "";
+            if (window.userRole === 'student' && window.activeStudent) {
+                studentName = window.activeStudent.name || window.activeStudent.username;
+                if (window.getUserProgress) {
+                    const completed = await window.getUserProgress();
+                    if (completed.length > 0) {
+                        progressSummary = completed.join(", ");
+                    }
+                }
+            }
+            
+            // Si es maestro
+            let teacherAnalytics = null;
+            if (window.userRole === 'teacher' && window.teacherAnalyticsContext) {
+                // Pasamos una versión ligera de la analítica (solo los puntajes recientes)
+                teacherAnalytics = JSON.stringify(window.teacherAnalyticsContext.map(s => {
+                    return {
+                        name: s.name,
+                        lastActive: s.lastActive,
+                        recentScores: s.progress.slice(0, 5).map(p => ({topic: p.levelId, score: p.score}))
+                    }
+                }));
+            }
+
+            const response = await window.fetchSecure({ 
+                action: "CHAT",
+                message: text,
+                progressSummary: progressSummary,
+                studentName: studentName,
+                teacherAnalytics: teacherAnalytics,
+                role: window.userRole
             });
             
             const data = await response.json();
