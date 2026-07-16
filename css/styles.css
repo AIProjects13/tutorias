@@ -525,9 +525,24 @@ textarea.input-field {
     header h2 {
         font-size: 1.5rem;
     }
+    
+    .lesson-content {
+        padding: 20px 20px 80px 20px;
+    }
 
-    .options-container {
+    .options-container, .dashboard-grid {
         grid-template-columns: 1fr; 
+    }
+    
+    .dashboard-table th, .dashboard-table td {
+        padding: 8px 4px;
+        font-size: 0.85rem;
+    }
+    
+    .dashboard-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
     }
     
     .level-node {
