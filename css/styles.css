@@ -1,0 +1,546 @@
+/* =========================================
+   DISEÑO PREMIUM - TUTOR MÁGICO
+   Estética: Glassmorphism, Colores Vibrantes, Micro-animaciones
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;800&display=swap');
+
+:root {
+    /* Paleta Premium HSL */
+    --primary-gradient: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    --secondary-gradient: linear-gradient(135deg, #4ECDC4, #55E2E9);
+    --accent-gradient: linear-gradient(135deg, #FFE66D, #FFD166);
+    --bg-animated: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+    
+    --text-main: #2D3436;
+    --text-light: #636E72;
+    
+    --font-heading: 'Fredoka', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+    
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    
+    --border-radius-xl: 30px;
+    --border-radius-btn: 50px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-animated);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden; /* Evita scroll en desktop */
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#app-container {
+    width: 100%;
+    max-width: 900px; /* Apto para Tablets/Desktop */
+    height: 100vh;
+    max-height: 90vh; /* Flotante en Desktop */
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--glass-shadow);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Manejo de Pantallas (Screens) */
+.screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    animation: fadeInScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.screen.active {
+    display: flex;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* =========================================
+   PANTALLA DE LOGIN
+========================================= */
+#login-screen {
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 50px 40px;
+    border-radius: var(--border-radius-xl);
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    width: 85%;
+    max-width: 400px;
+}
+
+.login-card h1 {
+    font-family: var(--font-heading);
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 3rem;
+    margin-bottom: 5px;
+    filter: drop-shadow(0 2px 4px rgba(255,107,107,0.3));
+}
+
+.login-card p {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+/* =========================================
+   ELEMENTOS DE FORMULARIO Y BOTONES
+========================================= */
+.input-field {
+    width: 100%;
+    padding: 16px 20px;
+    margin: 10px 0;
+    border: 2px solid transparent;
+    background: rgba(240, 244, 248, 0.8);
+    border-radius: var(--border-radius-btn);
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.input-field:focus {
+    border-color: #4ECDC4;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.2);
+}
+
+.btn {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    padding: 15px 30px;
+    border: none;
+    border-radius: var(--border-radius-btn);
+    cursor: pointer;
+    font-weight: 700;
+    color: white;
+    width: 100%;
+    margin-top: 15px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: rgba(255,255,255,0.2);
+    transform: rotate(45deg) translateY(-100%);
+    transition: transform 0.6s ease;
+}
+
+.btn:hover::after {
+    transform: rotate(45deg) translateY(100%);
+}
+
+.btn:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: translateY(2px);
+}
+
+.primary-btn { background: var(--primary-gradient); }
+.secondary-btn { background: var(--secondary-gradient); }
+.small-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    width: auto;
+    background: rgba(0,0,0,0.05);
+    color: var(--text-main);
+    box-shadow: none;
+}
+.small-btn:hover {
+    background: rgba(0,0,0,0.1);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   HEADER GLOBAL
+========================================= */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    z-index: 10;
+}
+
+header h2 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* =========================================
+   MAPA DE AVENTURAS DINÁMICO
+========================================= */
+.map-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 40px 20px;
+    background: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="%23ffffff" opacity="0.5"/></svg>') repeat;
+    position: relative;
+    scroll-behavior: smooth;
+}
+
+.level-map {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    position: relative;
+    padding-bottom: 50px;
+}
+
+/* La línea del camino */
+.level-map::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateX(-50%);
+    border-radius: 10px;
+    z-index: 0;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.level-node {
+    position: relative;
+    z-index: 1;
+    width: 250px;
+    padding: 15px 20px;
+    background: white;
+    border: 4px solid #ddd;
+    border-radius: var(--border-radius-xl);
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    color: var(--text-light);
+    cursor: not-allowed;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Efecto de zig-zag alternando izquierda/derecha */
+.level-node:nth-child(odd) {
+    transform: translateX(-80px);
+}
+.level-node:nth-child(even) {
+    transform: translateX(80px);
+}
+
+.level-node.active {
+    border-color: #FFD166;
+    background: var(--accent-gradient);
+    color: #8C6A00;
+    cursor: pointer;
+    box-shadow: 0 15px 30px rgba(255, 209, 102, 0.4);
+    transform: translateX(0) scale(1.1) !important;
+    animation: floatingNode 3s ease-in-out infinite;
+    z-index: 2;
+}
+
+.level-node.completed {
+    border-color: #4ECDC4;
+    background: white;
+    color: #4ECDC4;
+    cursor: pointer;
+}
+
+.level-node.completed::after {
+    content: '⭐';
+    position: absolute;
+    top: -15px; right: -15px;
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+@keyframes floatingNode {
+    0%, 100% { transform: scale(1.1) translateY(0); }
+    50% { transform: scale(1.1) translateY(-10px); }
+}
+
+/* =========================================
+   PANTALLA DEL MAESTRO (CMS)
+========================================= */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.glass-box {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--border-radius-xl);
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255,255,255,1);
+}
+
+.glass-box h3 {
+    font-family: var(--font-heading);
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    border-bottom: 2px dashed #ddd;
+    padding-bottom: 10px;
+}
+
+textarea.input-field {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* =========================================
+   MINIJUEGOS Y LECCIONES
+========================================= */
+.lesson-content {
+    padding: 30px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.story-box {
+    background: white;
+    border: none;
+    padding: 30px;
+    border-radius: var(--border-radius-xl);
+    font-size: 1.3rem;
+    line-height: 1.8;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    position: relative;
+}
+
+.story-box::before {
+    content: '📖';
+    position: absolute;
+    top: -20px; left: -20px;
+    font-size: 3rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.read-btn {
+    background: var(--secondary-gradient);
+    color: white;
+    margin-top: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Trivi-Aventura Premium */
+.game-view {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: var(--border-radius-xl);
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    margin-top: 10px;
+}
+
+.game-title {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 25px;
+}
+
+.options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.option-btn {
+    background: white;
+    color: var(--text-main);
+    border: 3px solid #eee;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.option-btn:hover {
+    border-color: #FFD166;
+    background: #FFF9E6;
+}
+
+.option-btn.correct {
+    background: #4CAF50 !important;
+    border-color: #388E3C !important;
+    color: white !important;
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(76, 175, 80, 0.4);
+}
+
+.option-btn.wrong {
+    background: #FF6B6B !important;
+    border-color: #E53935 !important;
+    color: white !important;
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+/* =========================================
+   BOTÓN FLOTANTE (FAB) TUTOR IA
+========================================= */
+.ai-tutor-fab {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    border: 4px solid white;
+    box-shadow: 0 15px 25px rgba(255, 209, 102, 0.5);
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+}
+
+.ai-tutor-fab:hover {
+    transform: scale(1.15) rotate(15deg);
+    box-shadow: 0 20px 35px rgba(255, 209, 102, 0.7);
+}
+
+.ai-tutor-fab.attention {
+    animation: magicPulse 2s infinite;
+}
+
+@keyframes magicPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.7); }
+    50% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(255, 209, 102, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0); }
+}
+
+/* =========================================
+   MEDIA QUERIES (CELULARES)
+========================================= */
+@media screen and (max-width: 600px) {
+    body {
+        align-items: flex-start;
+    }
+    
+    #app-container {
+        border-radius: 0;
+        max-height: 100vh;
+        height: 100vh;
+        border: none;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+        width: 95%;
+    }
+
+    .login-card h1 {
+        font-size: 2.5rem;
+    }
+
+    header {
+        padding: 15px 20px;
+    }
+
+    header h2 {
+        font-size: 1.5rem;
+    }
+
+    .options-container {
+        grid-template-columns: 1fr; 
+    }
+    
+    .level-node {
+        width: 200px;
+    }
+    .level-node:nth-child(odd) { transform: translateX(-40px); }
+    .level-node:nth-child(even) { transform: translateX(40px); }
+    
+    .ai-tutor-fab {
+        bottom: 20px;
+        right: 20px;
+        width: 65px;
+        height: 65px;
+        font-size: 2rem;
+    }
+}

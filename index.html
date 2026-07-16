@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Mágico de Historia de Guatemala</title>
+    <!-- Google Fonts: Fredoka para un look amigable e infantil -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Estilos locales -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Audios para el juego -->
+    <audio id="audio-correct" src="assets/sonido-correcto.mp3" preload="auto"></audio>
+    <audio id="audio-celebration" src="assets/sonido-celebracion.mp3" preload="auto"></audio>
+    
+    <div id="app-container">
+        <!-- Pantalla de Login / Selector de Perfil -->
+        <div id="login-screen" class="screen active">
+            <div class="login-card">
+                <h1>Tutor Mágico ✨</h1>
+                <p>¡Descubre la historia de Guatemala!</p>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Correo electrónico" required class="input-field">
+                    <div style="position: relative; display: flex; align-items: center; margin-bottom: 10px;">
+                        <input type="password" id="login-password" placeholder="Contraseña" required class="input-field" style="margin:0; padding-right: 40px; width: 100%;">
+                        <span id="toggle-eye-login" style="position: absolute; right: 15px; cursor: pointer; font-size: 1.2rem; z-index: 2;">👁️</span>
+                    </div>
+                    <button type="submit" id="btn-login" class="btn primary-btn">Ingresar</button>
+                </form>
+                <div class="login-options">
+                    <p id="login-error" style="color: red; display: none;"></p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 15px;">*El maestro te dará tus credenciales</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla Principal del Mapa / Temas -->
+        <div id="map-screen" class="screen">
+            <header>
+                <h2>Mapa de Aventuras</h2>
+                <div class="user-info">
+                    <span id="user-name">Aventurero</span>
+                    <button id="btn-logout" class="btn small-btn">Salir</button>
+                </div>
+            </header>
+            <main>
+                <div class="level-map" id="dynamic-map">
+                    <!-- Los nodos de la aventura se inyectarán aquí dinámicamente -->
+                    <p style="text-align: center; color: white;">Cargando mapa mágico...</p>
+                </div>
+            </main>
+        </div>
+
+        <!-- Pantalla del Maestro (Dashboard) -->
+        <div id="teacher-screen" class="screen">
+            <header style="background-color: var(--secondary-color);">
+                <h2>Panel del Maestro 🦉</h2>
+                <div class="user-info">
+                    <span id="teacher-name">Profesor</span>
+                    <button id="btn-logout-teacher" class="btn small-btn">Salir</button>
+                </div>
+            </header>
+            <main class="lesson-content">
+                <div class="dashboard-grid">
+                    <div class="section-card">
+                        <h3>Configuración del Tutor IA 🤖</h3>
+                        <p style="font-size: 1rem; color: #555; margin-bottom: 10px;">Ingresa la API Key de Gemini. Se guardará de forma encriptada en tu Google Sheets.</p>
+                        <form id="settings-form">
+                            <div style="position: relative; display: flex; align-items: center; margin-bottom: 10px;">
+                                <input type="password" id="gemini-api-key" placeholder="Cargando clave..." required class="input-field" style="margin:0; padding-right: 40px; width: 100%;">
+                                <span id="toggle-eye" style="position: absolute; right: 10px; cursor: pointer; font-size: 1.2rem; z-index:2;">👁️</span>
+                            </div>
+                            <button type="submit" class="btn secondary-btn">Guardar Ajustes</button>
+                        </form>
+                        <p id="settings-status" style="color: green; margin-top: 10px; display: none; font-size: 1rem;">✅ Ajustes guardados correctamente.</p>
+                    </div>
+
+                    <div class="section-card cms-card">
+                        <h3>Añadir Nuevo Tema al Temario 📚</h3>
+                        <p style="font-size: 1rem; color: #555; margin-bottom: 15px;">Solo ingresa el título del tema (ej. "La Conquista de Guatemala"). La Inteligencia Artificial se encargará de investigar el tema, escribir la historia y crear el juego para los niños automáticamente.</p>
+                        <form id="cms-form" class="cms-form">
+                            <input type="text" id="cms-topic" placeholder="Ej: Viajes de Colón" required class="input-field">
+                            <button type="submit" class="btn primary-btn">Añadir al Temario Automático</button>
+                        </form>
+                        <p id="cms-status" style="color: green; margin-top: 10px; display: none; font-size: 1rem;">✅ Tema guardado. La IA lo preparará cuando un alumno haga clic.</p>
+                    </div>
+                    
+                    <div class="section-card dashboard-card" style="grid-column: 1 / -1;">
+                        <h3>Tablero de Análisis (Progreso de Alumnos) 📊</h3>
+                        <p style="font-size: 1rem; color: #555; margin-bottom: 15px;">Monitoriza en tiempo real las lecciones completadas, resultados de la trivia y las preguntas que los niños le hacen al Tutor Mágico.</p>
+                        
+                        <div style="overflow-x: auto;">
+                            <table class="dashboard-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                                        <th style="padding: 12px;">Alumno</th>
+                                        <th style="padding: 12px;">Actividad / Tema</th>
+                                        <th style="padding: 12px;">Detalle</th>
+                                        <th style="padding: 12px;">Resultado</th>
+                                        <th style="padding: 12px;">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-table-body">
+                                    <!-- Las filas se cargarán aquí desde Firebase -->
+                                    <tr><td colspan="5" style="text-align: center; padding: 20px;">Cargando analíticas...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Pantalla de Lección / Juego Multi-Etapa -->
+        <div id="lesson-screen" class="screen">
+            <header style="display: flex; justify-content: space-between; align-items: center;">
+                <button id="btn-back-map" class="btn small-btn" style="flex-shrink: 0; margin-top: 0;">⬅️ Volver</button>
+                <div style="flex-grow: 1; text-align: center;">
+                    <h2 id="lesson-title" style="margin: 0; font-size: 1.5rem;">Título del Tema</h2>
+                    <p id="lesson-progress" style="margin: 0; font-size: 0.9rem; color: #fde047;">Capítulo 1 de 3</p>
+                </div>
+            </header>
+            
+            <main class="lesson-content">
+                <div class="story-box" id="story-box">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <img src="assets/bot-tutor.png" alt="Tutor Mágico" style="width: 80px; height: 80px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                    </div>
+                    <h3 id="chapter-title" style="color: var(--primary-color); margin-top: 0; text-align: center;">...</h3>
+                    <p id="lesson-text" style="font-size: 1.2rem; line-height: 1.6;">✨ El Tutor Mágico está invocando su magia para preparar tu aventura. ¡Espera un momento! ✨</p>
+                    
+                    <button class="btn read-btn" id="btn-read-aloud" aria-label="Leer en voz alta">
+                        🔊 Leer
+                    </button>
+                </div>
+
+                <!-- Contenedor del Juego -->
+                <div id="game-container" class="game-container">
+                    <!-- Trivia Game -->
+                    <div id="game-trivia" class="game-view" style="display: none;">
+                        <h3 class="game-title">Trivi-Aventura 🚢</h3>
+                        <div class="question-box">
+                            <p id="trivia-question" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 15px;">...</p>
+                            <div class="options-container" id="trivia-options">
+                                <!-- Botones inyectados dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="chapter-success" style="display: none; text-align: center; margin-top: 20px;">
+                        <h2 style="color: var(--success-color);">¡Excelente! 🌟</h2>
+                        <button id="btn-next-chapter" class="btn primary-btn" style="width: 100%; margin-top: 10px; font-size: 1.2rem; padding: 15px;">Siguiente Capítulo ➡️</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+                    
+        <!-- PLANTILLA: Línea de Tiempo -->
+        <div id="game-timeline" class="game-view" style="display: none;">
+                        <h3 class="game-title">Ordena la Historia (Arrastra y Suelta)</h3>
+                        <div class="timeline-container">
+                            <div class="timeline-track">
+                                <!-- Zonas donde soltar (Dropzones) -->
+                                <div class="dropzone" data-id="1">1</div>
+                                <div class="dropzone" data-id="2">2</div>
+                                <div class="dropzone" data-id="3">3</div>
+                            </div>
+                        </div>
+                        <div class="draggable-items" id="timeline-items">
+                            <!-- Elementos para arrastrar -->
+                            <div class="drag-item" draggable="true" data-id="2">
+                                <img src="assets/carabela.png" alt="Colón" onerror="this.src='https://cdn-icons-png.flaticon.com/512/883/883017.png'">
+                                <span>Descubrimiento</span>
+                            </div>
+                            <div class="drag-item" draggable="true" data-id="1">
+                                <img src="assets/tecun-uman.png" alt="Mayas" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3233/3233483.png'">
+                                <span>Prehispánica</span>
+                            </div>
+                            <div class="drag-item" draggable="true" data-id="3">
+                                <img src="assets/pergamino.png" alt="Independencia" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2904/2904838.png'">
+                                <span>Independencia</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PLANTILLA: Memoria Histórica -->
+                    <div id="game-memory" class="game-view" style="display: none;">
+                        <h3 class="game-title">Memoria: Encuentra las Parejas</h3>
+                        <div class="memory-board" id="memory-board">
+                            <!-- Las cartas se inyectarán dinámicamente desde JS -->
+                        </div>
+                    </div>
+                    
+                </div>
+            </main>
+
+            <!-- Botón flotante del Tutor IA -->
+            <button id="btn-ai-tutor" class="ai-tutor-fab" aria-label="Pregúntale al tutor mágico">
+                🤖
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts Clásicos de Firebase (Compat) para evitar errores CORS al abrir desde archivo local -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Scripts de la app sin módulos -->
+    <script src="js/firebase-auth.js"></script>
+    <script src="js/sheets-api.js"></script>
+    <script src="js/ai-tutor.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
