@@ -631,9 +631,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('game-trivia').style.display = 'none';
         document.getElementById('chapter-success').style.display = 'none';
-        document.getElementById('exam-container').style.display = 'none';
-        document.getElementById('game-exam').style.display = 'none';
-        document.getElementById('exam-results').style.display = 'none';
+        
+        const examContainer = document.getElementById('exam-container');
+        if (examContainer) examContainer.style.display = 'none';
+        
+        const gameExam = document.getElementById('game-exam');
+        if (gameExam) gameExam.style.display = 'none';
+        
+        const examResults = document.getElementById('exam-results');
+        if (examResults) examResults.style.display = 'none';
+        
         document.getElementById('story-box').style.display = 'block';
         
         try {

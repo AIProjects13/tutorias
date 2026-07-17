@@ -2,7 +2,7 @@
 
 const SCRIPT_URL = 'URL_DE_TU_WEB_APP_AQUI'; // El usuario lo proveerá luego
 
-export async function saveProgress(studentId, levelId, score, time) {
+async function saveProgress(studentId, levelId, score, time) {
     if(SCRIPT_URL === 'URL_DE_TU_WEB_APP_AQUI') {
         console.warn("Google Sheets API no configurada. Progreso no guardado en la nube.");
         return false;
